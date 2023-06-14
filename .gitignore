@@ -54,3 +54,5 @@ dkms.conf
 # CLion cache directory
 .idea/
 
+# CMake build directory
+cmake-build-debug/
