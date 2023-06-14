@@ -1,0 +1,7 @@
+# ninja log v5
+0	112	7084520863972907	build.ninja	be6341615bb7249b
+1	1469	7084517484396046	CMakeFiles/Pascal.dir/src/Core/main.c.obj	1dbd01ae78be4fae
+1469	1809	7084517487742177	Pascal.exe	4609b7a0c479f855
+0	358	7084531175060593	CMakeFiles/Pascal.dir/src/main.c.obj	bd037a18c6cfac4e
+4	1622	7084531187697852	CMakeFiles/Pascal.dir/src/ps_server.c.obj	aed8da6def04c9c7
+1624	1803	7084531189478242	Pascal.exe	21e280fd8d6fb842

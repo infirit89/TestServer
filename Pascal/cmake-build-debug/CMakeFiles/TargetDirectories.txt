@@ -1,0 +1,3 @@
+D:/Projects/Pascal/cmake-build-debug/CMakeFiles/Pascal.dir
+D:/Projects/Pascal/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/Projects/Pascal/cmake-build-debug/CMakeFiles/rebuild_cache.dir
