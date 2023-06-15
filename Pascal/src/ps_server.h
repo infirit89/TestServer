@@ -14,13 +14,13 @@ typedef enum ps_protocol
 
 typedef struct ps_server
 {
-    int server_socket;
+    u32 server_socket;
     int server_port;
 } ps_server;
 
-typedef void(*listen_successful_callback)();
+#define PS_DEFAULT_BACKLOG 10
 
 int init_server(ps_server* server, ps_protocol protocol);
-void start_listen(ps_server* server, u16 port, listen_successful_callback callback);
+int start_listen(ps_server* server, u16 port, s32 backlog);
 
 #endif //PASCAL_PS_SERVER_H

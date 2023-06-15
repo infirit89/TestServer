@@ -29,5 +29,7 @@ typedef long long s64;
 #define UINT32_MAX 0xffffffffU  /* 4294967295U */
 #define UINT64_MAX 0xffffffffffffffffULL /* 18446744073709551615ULL */
 
+#define PS_TRUE 1
+#define PS_FALSE 0
 
 #endif //PASCAL_PS_DEFS_H

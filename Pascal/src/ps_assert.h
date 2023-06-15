@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <signal.h>
 
+#if defined(PS_DEBUG)
 #define PS_ASSERT(expression, message) \
     if(!(expression))                  \
     {                                  \
@@ -15,5 +16,9 @@
         system("pause");               \
         raise(SIGABRT);                \
     }
+#elif defined(PS_DEBUG)
+#define  PS_ASSERT(expression, message)
+#endif
+
 
 #endif //PASCAL_PS_ASSERT_H
