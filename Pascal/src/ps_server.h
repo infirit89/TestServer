@@ -12,9 +12,11 @@ typedef enum ps_protocol
     PS_UDP
 } ps_protocol;
 
+typedef u32 ps_socket;
+
 typedef struct ps_server
 {
-    u32 server_socket;
+    ps_socket server_socket;
     int server_port;
 } ps_server;
 
@@ -22,5 +24,11 @@ typedef struct ps_server
 
 int init_server(ps_server* server, ps_protocol protocol);
 int start_listen(ps_server* server, u16 port, s32 backlog);
+int shutdown_server(ps_server* server);
+int close_socket(ps_socket socket);
+
+ps_socket accept_client(ps_server* server);
+int receive_data_from_client(ps_socket client, char* buffer, int length, int flags);
+int send_data_to_client(ps_socket client, char* buffer, int length, int flags);
 
 #endif //PASCAL_PS_SERVER_H
