@@ -56,3 +56,7 @@ dkms.conf
 
 # CMake build directory
 cmake-build-debug/
+
+build/
+
+cmake-build-debug-mingw/

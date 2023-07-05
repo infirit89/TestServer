@@ -8,7 +8,7 @@
 #include <errno.h>
 #include "ps_assert.h"
 
-int init_server(ps_server* server, ps_protocol protocol)
+ps_server* init_server(ps_request_callback request_callback, ps_protocol protocol)
 {
     int socket_type = SOCK_STREAM;
     int socket_protocol = IPPROTO_TCP;
@@ -24,19 +24,31 @@ int init_server(ps_server* server, ps_protocol protocol)
             break;
         default:
             PS_ASSERT(PS_FALSE, "Invalid protocol type");
-            return EINVAL;
+            return NULL;
     }
 
     // TODO: maybe allow the user to select a family?
-    server->server_socket = socket(AF_INET, socket_type, socket_protocol);
-    PS_ASSERT(server->server_socket, strerror(errno));
-    if(server->server_socket == 0)
-        return errno;
+    ps_socket server_socket = socket(AF_INET, socket_type, socket_protocol);
+    PS_ASSERT(server_socket, strerror(errno));
 
-    return 0;
+    ps_server* server = malloc(sizeof(ps_server));
+    server->server_socket = server_socket;
+    server->request_callback = request_callback;
+
+    return server;
 }
 
-int start_listen(ps_server* server, u16 port, s32 backlog)
+void start_request_response_loop(ps_server* server)
+{
+    while(TRUE)
+    {
+        ps_socket client = accept_client(server);
+        server->request_callback(client);
+        close_socket(client);
+    }
+}
+
+int server_listen(ps_server* server, u16 port, s32 backlog)
 {
     server->server_port = port;
     struct sockaddr_in server_address;
@@ -55,6 +67,8 @@ int start_listen(ps_server* server, u16 port, s32 backlog)
     PS_ASSERT(!listen_result, "Listen failed");
     if(listen_result)
         return listen_result;
+
+    start_request_response_loop(server);
 
     return 0;
 }
@@ -91,6 +105,10 @@ int close_socket(ps_socket socket)
 
 int shutdown_server(ps_server* server)
 {
+    if(server != NULL)
+        return -1;
+
     int close_result = close_socket(server->server_socket);
+    free(server);
     return close_result;
 }

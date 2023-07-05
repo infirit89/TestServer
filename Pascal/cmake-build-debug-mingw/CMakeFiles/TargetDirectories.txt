@@ -1,3 +1,0 @@
-C:/Users/OKAY/Documents/Projects/github/TestServer/Pascal/cmake-build-debug-mingw/CMakeFiles/Pascal.dir
-C:/Users/OKAY/Documents/Projects/github/TestServer/Pascal/cmake-build-debug-mingw/CMakeFiles/edit_cache.dir
-C:/Users/OKAY/Documents/Projects/github/TestServer/Pascal/cmake-build-debug-mingw/CMakeFiles/rebuild_cache.dir

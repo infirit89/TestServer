@@ -5,18 +5,25 @@
 #include "pascal.h"
 #include "ps_file.h"
 #include <winsock2.h>
+#include <eventsys.h>
 
-const u16 port = 8001;
+static const u16 port = 8001;
 #define BUFFER_LENGTH 1024
+
+static char recieve_buffer[BUFFER_LENGTH];
+static char http_response[BUFFER_LENGTH * 2] = "HTTP/1.1 200 OK\r\n\n";
+
+static void handle_request(ps_socket client_socket)
+{
+    receive_data_from_client(client_socket, recieve_buffer, BUFFER_LENGTH, 0);
+    printf("%s\n", recieve_buffer);
+    send_data_to_client(client_socket, http_response, strlen(http_response), 0);
+}
 
 int main(int argc, char** argv)
 {
-//    FILE* htmlData = fopen("Assets/index.html", "r");
-//    char responseData[BUFFER_LENGTH];
-//    fgets(responseData, BUFFER_LENGTH, htmlData);
     char* response_data = read_file("Assets/index.html");
-    char httpResponse[BUFFER_LENGTH * 2] = "HTTP/1.1 200 OK\r\n\n";
-    strcat(httpResponse, response_data);
+    strcat(http_response, response_data);
 
     if(response_data)
         free(response_data);
@@ -24,22 +31,10 @@ int main(int argc, char** argv)
     int result = ps_init();
     PS_ASSERT(!result, "Can't start pascal");
 
-    ps_server server_data;
-    init_server(&server_data, PS_TCP);
-    start_listen(&server_data, port, PS_DEFAULT_BACKLOG);
+    ps_server* server = init_server(handle_request, PS_TCP);
+    server_listen(server, port, PS_DEFAULT_BACKLOG);
 
-    char recieve_buffer[BUFFER_LENGTH];
-
-    while(TRUE)
-    {
-        ps_socket client = accept_client(&server_data);
-        receive_data_from_client(client, recieve_buffer, BUFFER_LENGTH, 0);
-        printf("%s\n", recieve_buffer);
-        send_data_to_client(client, httpResponse, strlen(httpResponse), 0);
-        close_socket(client);
-    }
-
-    shutdown_server(&server_data);
+    shutdown_server(server);
 
     result = ps_shutdown();
     PS_ASSERT(!result, "Can't shutdown pascal");
