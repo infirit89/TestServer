@@ -57,7 +57,7 @@ ps_request* init_request(ps_server* server, ps_socket client_socket);
 void shutdown_request(ps_request* request);
 
 ps_socket accept_client(ps_server* server);
-void receive_data_from_client(ps_request* request);
+void receive_data_from_client(ps_socket client_socket, ps_buffer* buffer);
 int send_data_to_client(ps_socket client, char* buffer, int length, int flags);
 
 void start_request_response_loop(ps_server* server);

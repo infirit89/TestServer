@@ -49,7 +49,7 @@ void start_request_response_loop(ps_server* server)
 
         ps_request* request = init_request(server, client);
         init_buffer(&(request->buffer), PS_HTTP_REQUEST_INITIAL_BUF_SIZE);
-        receive_data_from_client(request);
+        receive_data_from_client(request->client_socket, &(request->buffer));
         // TODO: read from client and parse the raw request
         server->request_callback(request);
 
@@ -91,31 +91,25 @@ ps_socket accept_client(ps_server* server)
     return client;
 }
 
-void receive_data_from_client(ps_request* request)
+void receive_data_from_client(ps_socket client_socket, ps_buffer* buffer)
 {
-    int bytes = recv(request->client_socket,
-             request->buffer.data + request->buffer.length,
-             request->buffer.capacity - request->buffer.length, 0);
+    int bytes = 0;
 
+    do
+    {
+        bytes = recv(client_socket,
+                     buffer->data + buffer->length,
+                     buffer->capacity - buffer->length, 0);
 
-//    int bytes = 0;
-//
-//    do
-//    {
-//        bytes = recv(request->client_socket,
-//                     request->buffer.data + request->buffer.length,
-//                     request->buffer.capacity - request->buffer.length, 0);
-//        if(bytes > 0)
-//            request->buffer.length += bytes;
-//
-//        if(request->buffer.length >= request->buffer.capacity)
-//            resize_buffer(&(request->buffer), request->buffer.capacity * 2);
-//
-//    } while(bytes > 0 && request->buffer.capacity < PS_HTTP_MAX_REQUEST_BUF_SIZE);
+        if(bytes > 0)
+            buffer->length += bytes;
 
-//    int bytes = recv(client, buffer, length, flags);
-//    return bytes;
-    //PS_ASSERT(receive_result == length, "An error occurred while receiving data from client");
+        if(buffer->length >= buffer->capacity)
+            resize_buffer(buffer, buffer->capacity * 2);
+        else
+            break;
+
+    } while (bytes > 0 && buffer->capacity < PS_HTTP_MAX_REQUEST_BUF_SIZE);
 }
 
 ps_request* init_request(ps_server* server, ps_socket client_socket)
