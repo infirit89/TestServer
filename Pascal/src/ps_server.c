@@ -38,13 +38,22 @@ ps_server* init_server(ps_request_callback request_callback, ps_protocol protoco
     return server;
 }
 
+
 void start_request_response_loop(ps_server* server)
 {
     while(TRUE)
     {
         ps_socket client = accept_client(server);
-        server->request_callback(client);
-        close_socket(client);
+        if(client == PS_INVALID_SOCKET)
+            continue;
+
+        ps_request* request = init_request(server, client);
+        init_buffer(&(request->buffer), PS_HTTP_REQUEST_INITIAL_BUF_SIZE);
+        receive_data_from_client(request);
+        // TODO: read from client and parse the raw request
+        server->request_callback(request);
+
+        shutdown_request(request);
     }
 }
 
@@ -82,11 +91,50 @@ ps_socket accept_client(ps_server* server)
     return client;
 }
 
-int receive_data_from_client(ps_socket client, char* buffer, int length, int flags)
+void receive_data_from_client(ps_request* request)
 {
-    int receive_result = recv(client, buffer, length, flags);
+    int bytes = recv(request->client_socket,
+             request->buffer.data + request->buffer.length,
+             request->buffer.capacity - request->buffer.length, 0);
+
+
+//    int bytes = 0;
+//
+//    do
+//    {
+//        bytes = recv(request->client_socket,
+//                     request->buffer.data + request->buffer.length,
+//                     request->buffer.capacity - request->buffer.length, 0);
+//        if(bytes > 0)
+//            request->buffer.length += bytes;
+//
+//        if(request->buffer.length >= request->buffer.capacity)
+//            resize_buffer(&(request->buffer), request->buffer.capacity * 2);
+//
+//    } while(bytes > 0 && request->buffer.capacity < PS_HTTP_MAX_REQUEST_BUF_SIZE);
+
+//    int bytes = recv(client, buffer, length, flags);
+//    return bytes;
     //PS_ASSERT(receive_result == length, "An error occurred while receiving data from client");
-    return receive_result;
+}
+
+ps_request* init_request(ps_server* server, ps_socket client_socket)
+{
+    ps_request* request = (ps_request*)malloc(sizeof(ps_request));
+    request->server = server;
+    request->client_socket = client_socket;
+
+    return request;
+}
+
+void shutdown_request(ps_request* request)
+{
+    PS_ASSERT(request, "Can't free a request that is null");
+
+    close_socket(request->client_socket);
+
+    free_buffer(&(request->buffer));
+    free(request);
 }
 
 int send_data_to_client(ps_socket client, char* buffer, int length, int flags)

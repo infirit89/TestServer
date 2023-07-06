@@ -10,23 +10,23 @@
 static const u16 port = 8001;
 #define BUFFER_LENGTH 1024
 
-static char recieve_buffer[BUFFER_LENGTH];
+static char receive_buffer[BUFFER_LENGTH];
 static char http_response[BUFFER_LENGTH * 2] = "HTTP/1.1 200 OK\r\n\n";
 
-static void handle_request(ps_socket client_socket)
+static void handle_request(ps_request* request)
 {
-    receive_data_from_client(client_socket, recieve_buffer, BUFFER_LENGTH, 0);
-    printf("%s\n", recieve_buffer);
-    send_data_to_client(client_socket, http_response, strlen(http_response), 0);
+    //receive_data_from_client(request->client_socket, receive_buffer, BUFFER_LENGTH, 0);
+    printf("%s\n", request->buffer.data);
+    send_data_to_client(request->client_socket, http_response, strlen(http_response), 0);
 }
 
 int main(int argc, char** argv)
 {
-    char* response_data = read_file("Assets/index.html");
-    strcat(http_response, response_data);
+//    char* response_data = read_file("Assets/index.html");
+//    strcat(http_response, response_data);
 
-    if(response_data)
-        free(response_data);
+//    if(response_data)
+//        free(response_data);
 
     int result = ps_init();
     PS_ASSERT(!result, "Can't start pascal");
