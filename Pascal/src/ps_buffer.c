@@ -17,6 +17,8 @@ void init_buffer(ps_buffer* buffer, u32 initial_capacity)
 void free_buffer(ps_buffer* buffer)
 {
     PS_ASSERT(buffer, "Buffer is null");
+    // hello idiot this gives error and for some fucking reason this line causes it:
+    // char* target = strtok_s(context, delimeter, &context);
     free(buffer->data);
     buffer->capacity = 0;
     buffer->length = 0;

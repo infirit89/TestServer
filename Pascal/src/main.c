@@ -16,6 +16,9 @@ static char http_response[BUFFER_LENGTH * 2] = "HTTP/1.1 200 OK\r\n\n";
 static void handle_request(ps_request* request)
 {
     //receive_data_from_client(request->client_socket, receive_buffer, BUFFER_LENGTH, 0);
+    const char* method = request_method_to_str(request->method);
+    printf("%s\n", method);
+    printf("%s\n", request->target);
     printf("%s\n", request->buffer.data);
     send_data_to_client(request->client_socket, http_response, strlen(http_response), 0);
 }

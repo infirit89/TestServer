@@ -32,4 +32,7 @@ typedef long long s64;
 #define PS_TRUE 1
 #define PS_FALSE 0
 
+typedef u32 ps_socket;
+#define PS_INVALID_SOCKET (ps_socket)~0
+
 #endif //PASCAL_PS_DEFS_H

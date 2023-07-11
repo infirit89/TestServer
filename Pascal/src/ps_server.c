@@ -50,7 +50,9 @@ void start_request_response_loop(ps_server* server)
         ps_request* request = init_request(server, client);
         init_buffer(&(request->buffer), PS_HTTP_REQUEST_INITIAL_BUF_SIZE);
         receive_data_from_client(request->client_socket, &(request->buffer));
+        printf("%s\n", request->buffer.data);
         // TODO: read from client and parse the raw request
+        parse_raw_request_data(request);
         server->request_callback(request);
 
         shutdown_request(request);
@@ -93,7 +95,7 @@ ps_socket accept_client(ps_server* server)
 
 void receive_data_from_client(ps_socket client_socket, ps_buffer* buffer)
 {
-    int bytes = 0;
+    int bytes;
 
     do
     {
