@@ -11,12 +11,13 @@ typedef struct ps_buffer
 {
     char* data;
     u32 capacity;
-    u32 length;
+    u32 size;
 } ps_buffer;
 
-void init_buffer(ps_buffer* buffer, u32 initial_capacity);
-void free_buffer(ps_buffer* buffer);
-void resize_buffer(ps_buffer* buffer, u32 capacity);
+void buffer_init(ps_buffer* buffer, u32 initial_capacity);
+void buffer_free(ps_buffer* buffer);
+void buffer_resize(ps_buffer* buffer, u32 capacity);
+void buffer_push_data(ps_buffer* buffer, char* data, u32 size);
 
 /*
  * buf: ptr + size

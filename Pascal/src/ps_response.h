@@ -92,18 +92,20 @@ typedef struct ps_response_header
 
 typedef struct ps_response
 {
+    ps_socket client_socket;
     ps_http_response_status status;
     ps_response_header* base_header;
     char* body;
-    u32 body_length;
+    u32 content_length;
 
 } ps_response;
 
-const char* ps_http_response_status_to_str(ps_http_response_status status);
-ps_response* init_response();
+//const char* ps_http_response_status_to_str(ps_http_response_status status);
+ps_response* response_init(ps_socket client_socket);
+void response_shutdown(ps_response* response);
 void response_set_body(ps_response* response, char* body, u32 body_length);
 void response_set_header(ps_response* response, char* key, char* value);
 void ps_respond(ps_response* response);
-void set_status(ps_response* response, ps_http_response_status status);
+void response_set_status(ps_response* response, ps_http_response_status status);
 
 #endif //PASCAL_PS_RESPONSE_H

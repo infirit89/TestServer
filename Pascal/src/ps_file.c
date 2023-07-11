@@ -26,7 +26,7 @@ char* read_file(const char* path)
     fseek(file_handle, 0, SEEK_SET);
     char* data = (char*) malloc(sizeof(char) * file_size);
     size_t result = fread(data, 1, file_size, file_handle);
-    if(result != file_size)
+    if(result != file_size - 1)
     {
         printf("Error reading from file");
         fclose(file_handle);

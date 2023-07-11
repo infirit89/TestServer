@@ -4,8 +4,11 @@
 
 #include "ps_response.h"
 #include "ps_assert.h"
+#include "ps_buffer.h"
+#include "ps_socket_utils.h"
 
 #include <stdlib.h>
+#include <stdarg.h>
 
 const char* response_text[] =
 {
@@ -88,10 +91,11 @@ const char* response_text[] =
     "", "", "", ""
 };
 
-ps_response* init_response()
+ps_response* response_init(ps_socket client_socket)
 {
     ps_response* response = (ps_response*)calloc(1, sizeof(ps_response));
     response->status = PS_HTTP_SUCCESS;
+    response->client_socket = client_socket;
     return response;
 }
 
@@ -99,10 +103,10 @@ void response_set_body(ps_response* response, char* body, u32 body_length)
 {
     PS_ASSERT(response, "Response is null");
     response->body = body;
-    response->body_length = body_length;
+    response->content_length = body_length;
 }
 
-void set_status(ps_response* response, ps_http_response_status status)
+void response_set_status(ps_response* response, ps_http_response_status status)
 {
     response->status = status;
 }
@@ -117,7 +121,66 @@ void response_set_header(ps_response* response, char* key, char* value)
     response->base_header = header;
 }
 
+static void _serialize_formatted(ps_buffer* buffer, const char* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+
+    s32 bytes = vsnprintf(buffer->data + buffer->size, buffer->capacity - buffer->size, format, args);
+    buffer->size += bytes;
+
+    va_end(args);
+}
+
+static void _serialize_response_headers(ps_buffer* buffer, ps_response* response)
+{
+    // put the status code and text into the reponse buffer
+    _serialize_formatted(buffer, "HTTP/1.1 %i %s\r\n", response->status, response_text[response->status]);
+
+    // put the content length into the response buffer
+    _serialize_formatted(buffer, "Content-Length: %i\r\n", response->content_length);
+
+    // serialize all the other fucking headers
+    ps_response_header* header = response->base_header;
+    while(header)
+    {
+        _serialize_formatted(buffer, "%s: %s\r\n", header->key, header->value);
+        header = header->next_header;
+    }
+
+    // put a new line for good looks
+    _serialize_formatted(buffer, "\r\n");
+}
+
 void ps_respond(ps_response* response)
 {
+    ps_buffer buffer;
+    buffer_init(&buffer, PS_HTTP_REQUEST_INITIAL_BUF_SIZE);
 
+    _serialize_response_headers(&buffer, response);
+    if(response->body)
+        buffer_push_data(&buffer, response->body, response->content_length);
+
+    printf("%s\n", buffer.data);
+
+    write_to_socket(response->client_socket, &buffer);
+
+    buffer_free(&buffer);
+    response_shutdown(response);
 }
+
+void response_shutdown(ps_response* response)
+{
+    PS_ASSERT(response, "Response is null");
+
+    ps_response_header* header = response->base_header;
+    while(header)
+    {
+        ps_response_header* temp = header;
+        header = header->next_header;
+        free(temp);
+    }
+
+    free(response);
+}
+

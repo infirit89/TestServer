@@ -28,7 +28,7 @@ void parse_raw_request_data(ps_request* request)
 {
     const char* delimeter = " ";
 
-    char* temp_buffer = (char*)malloc(request->buffer.length);
+    char* temp_buffer = (char*)malloc(request->buffer.size);
     strcpy(temp_buffer, request->buffer.data);
 
     char* context = NULL;

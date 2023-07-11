@@ -3,10 +3,11 @@
 //
 
 #include "ps_server.h"
+#include "ps_assert.h"
+#include "ps_socket_utils.h"
+
 #include <winsock2.h>
 #include <stdlib.h>
-#include <errno.h>
-#include "ps_assert.h"
 
 ps_server* init_server(ps_request_callback request_callback, ps_protocol protocol)
 {
@@ -48,11 +49,12 @@ void start_request_response_loop(ps_server* server)
             continue;
 
         ps_request* request = init_request(server, client);
-        init_buffer(&(request->buffer), PS_HTTP_REQUEST_INITIAL_BUF_SIZE);
-        receive_data_from_client(request->client_socket, &(request->buffer));
-        printf("%s\n", request->buffer.data);
-        // TODO: read from client and parse the raw request
+        buffer_init(&(request->buffer), PS_HTTP_REQUEST_INITIAL_BUF_SIZE);
+
+        // receive the data from the client socket and parse baybeeeeeeeeee
+        receive_from_socket(request->client_socket, &(request->buffer));
         parse_raw_request_data(request);
+
         server->request_callback(request);
 
         shutdown_request(request);
@@ -93,27 +95,6 @@ ps_socket accept_client(ps_server* server)
     return client;
 }
 
-void receive_data_from_client(ps_socket client_socket, ps_buffer* buffer)
-{
-    int bytes;
-
-    do
-    {
-        bytes = recv(client_socket,
-                     buffer->data + buffer->length,
-                     buffer->capacity - buffer->length, 0);
-
-        if(bytes > 0)
-            buffer->length += bytes;
-
-        if(buffer->length >= buffer->capacity)
-            resize_buffer(buffer, buffer->capacity * 2);
-        else
-            break;
-
-    } while (bytes > 0 && buffer->capacity < PS_HTTP_MAX_REQUEST_BUF_SIZE);
-}
-
 ps_request* init_request(ps_server* server, ps_socket client_socket)
 {
     ps_request* request = (ps_request*)malloc(sizeof(ps_request));
@@ -129,15 +110,8 @@ void shutdown_request(ps_request* request)
 
     close_socket(request->client_socket);
 
-    free_buffer(&(request->buffer));
+    buffer_free(&(request->buffer));
     free(request);
-}
-
-int send_data_to_client(ps_socket client, char* buffer, int length, int flags)
-{
-    int send_result = send(client, buffer, length, flags);
-    PS_ASSERT(send_result == length, "An error occurred while sending data to client");
-    return send_result;
 }
 
 int close_socket(ps_socket socket)

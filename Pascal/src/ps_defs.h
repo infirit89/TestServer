@@ -35,4 +35,7 @@ typedef long long s64;
 typedef u32 ps_socket;
 #define PS_INVALID_SOCKET (ps_socket)~0
 
+#define PS_HTTP_REQUEST_INITIAL_BUF_SIZE 1024
+#define PS_HTTP_MAX_REQUEST_BUF_SIZE 8388608
+
 #endif //PASCAL_PS_DEFS_H
