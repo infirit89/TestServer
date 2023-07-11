@@ -5,11 +5,20 @@
 #include "ps_server.h"
 #include "ps_assert.h"
 #include "ps_socket_utils.h"
+#include "ps_response.h"
 
 #include <winsock2.h>
 #include <stdlib.h>
 
-ps_server* init_server(ps_request_callback request_callback, ps_protocol protocol)
+#define INITIAL_ROUTE_MAP_CAPACITY 5
+
+static void _default_favicon_response(ps_request* request)
+{
+    ps_response* favicon_response = response_init(request->client_socket);
+    ps_respond(favicon_response);
+}
+
+ps_server* init_server(ps_protocol protocol)
 {
     int socket_type = SOCK_STREAM;
     int socket_protocol = IPPROTO_TCP;
@@ -34,11 +43,26 @@ ps_server* init_server(ps_request_callback request_callback, ps_protocol protoco
 
     ps_server* server = malloc(sizeof(ps_server));
     server->server_socket = server_socket;
-    server->request_callback = request_callback;
+//    server->request_callback = request_callback;
+    sc_map_init_sv(&(server->route_map), INITIAL_ROUTE_MAP_CAPACITY, 0);
+    server_add_route(server, "/favicon.ico", _default_favicon_response);
 
     return server;
 }
 
+static void _print_request_info(ps_request* request)
+{
+    const char* method = request_method_to_str(request->method);
+    printf("%s\n", method);
+    printf("%s\n", request->target);
+    printf("%s\n", request->buffer.data);
+
+}
+
+void server_add_route(ps_server* server, const char* route, ps_request_callback callback)
+{
+    sc_map_put_sv(&(server->route_map), route, callback);
+}
 
 void start_request_response_loop(ps_server* server)
 {
@@ -55,7 +79,14 @@ void start_request_response_loop(ps_server* server)
         receive_from_socket(request->client_socket, &(request->buffer));
         parse_raw_request_data(request);
 
-        server->request_callback(request);
+//        server->request_callback(request);
+
+        ps_request_callback callback = sc_map_get_sv(&(server->route_map), request->target);
+        if(sc_map_found(&server->route_map))
+        {
+            _print_request_info(request);
+            callback(request);
+        }
 
         shutdown_request(request);
     }
@@ -127,6 +158,9 @@ int shutdown_server(ps_server* server)
         return -1;
 
     int close_result = close_socket(server->server_socket);
+
+    sc_map_term_sv(&(server->route_map));
+
     free(server);
     return close_result;
 }

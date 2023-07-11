@@ -7,6 +7,7 @@
 #include "ps_defs.h"
 #include "ps_buffer.h"
 #include "ps_request.h"
+#include "sc/sc_map.h"
 
 typedef enum ps_protocol
 {
@@ -20,16 +21,19 @@ typedef void (*ps_request_callback)(struct ps_request* request);
 typedef struct ps_server
 {
     ps_socket server_socket;
-    ps_request_callback request_callback;
+//    ps_request_callback request_callback;
     int server_port;
+    struct sc_map_sv route_map;
 } ps_server;
 
 #define PS_DEFAULT_BACKLOG 10
 
-ps_server* init_server(ps_request_callback request_callback, ps_protocol protocol);
+ps_server* init_server(ps_protocol protocol);
 int server_listen(ps_server* server, u16 port, s32 backlog);
 int shutdown_server(ps_server* server);
 int close_socket(ps_socket socket);
+
+void server_add_route(ps_server* server, const char* route, ps_request_callback callback);
 
 ps_request* init_request(ps_server* server, ps_socket client_socket);
 void shutdown_request(ps_request* request);

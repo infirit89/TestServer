@@ -111,7 +111,7 @@ void response_set_status(ps_response* response, ps_http_response_status status)
     response->status = status;
 }
 
-void response_set_header(ps_response* response, char* key, char* value)
+void response_push_header(ps_response* response, char* key, char* value)
 {
     PS_ASSERT(response, "Response is null");
     ps_response_header* header = (ps_response_header*)malloc(sizeof(ps_response_header));
@@ -182,5 +182,10 @@ void response_shutdown(ps_response* response)
     }
 
     free(response);
+}
+
+void response_set_content_type(ps_response* response, char* content_type)
+{
+    response_push_header(response, "Content-Type", content_type);
 }
 
