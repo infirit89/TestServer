@@ -7,5 +7,6 @@
 
 // NOTE: on successful read character buffer has to be freed by the client
 char* read_file(const char* path);
+char* get_extension(char* file_path);
 
 #endif //PASCAL_PS_FILE_H

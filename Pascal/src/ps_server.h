@@ -40,6 +40,8 @@ void shutdown_request(ps_request* request);
 
 ps_socket accept_client(ps_server* server);
 
+void server_add_static_files(ps_server* server, char* folder_path, ...);
+
 void start_request_response_loop(ps_server* server);
 
 #endif //PASCAL_PS_SERVER_H

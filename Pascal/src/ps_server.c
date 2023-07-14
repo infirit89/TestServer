@@ -6,9 +6,14 @@
 #include "ps_assert.h"
 #include "ps_socket_utils.h"
 #include "ps_response.h"
+#include "ps_queue.h"
 
 #include <winsock2.h>
 #include <stdlib.h>
+#include <dirent.h>
+#include <stdarg.h>
+#include <sys/stat.h>
+#include <windows.h>
 
 #define INITIAL_ROUTE_MAP_CAPACITY 5
 
@@ -163,4 +168,65 @@ int shutdown_server(ps_server* server)
 
     free(server);
     return close_result;
+}
+
+static void _print_queue(ps_queue* queue)
+{
+    for (int i = 0; i < queue->size; ++i) {
+        printf("%s\n", queue->data[i]);
+    }
+}
+
+void server_add_static_files(ps_server* server, char* folder_path, ...)
+{
+    ps_queue queue;
+    queue_init(&queue, 16);
+
+    queue_enqueue(&queue, folder_path);
+
+    while (!queue_is_empty(&queue))
+    {
+        char *current = queue_peek(&queue);
+        queue_dequeue(&queue);
+
+        WIN32_FIND_DATA find_data;
+        char path[2048];
+        sprintf(path, "%s\\*.*", current);
+
+        HANDLE file_handle = FindFirstFile(path, &find_data);
+        PS_ASSERT(file_handle != INVALID_HANDLE_VALUE, "Couldn't open the folder");
+
+        do {
+            if (strcmp(find_data.cFileName, ".") == 0 ||
+                strcmp(find_data.cFileName, "..") == 0)
+                continue;
+
+            sprintf(path, "%s\\%s", current, find_data.cFileName);
+            if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+                printf("Directory: %s\n", path);
+                queue_enqueue(&queue, path);
+            } else
+                printf("File: %s\n", find_data.cFileName);
+
+            _print_queue(&queue);
+        } while (FindNextFile(file_handle, &find_data));
+
+        FindClose(file_handle);
+    }
+
+
+//    va_list extensions;
+
+//    while ((dir_entity = readdir(assets_dir)) != NULL)
+//    {
+//
+//
+////        va_start(extensions, folder_path);
+////        char* extension;
+////        while ((extension = va_arg(extensions, char*)) != NULL)
+//
+////        va_end(extensions);
+//    }
+
+    queue_free(&queue);
 }

@@ -10,12 +10,14 @@
 
 #if defined(PS_DEBUG)
 #define PS_ASSERT(expression, message) \
-    if(!(expression))                  \
+    do                                 \
     {                                  \
-        printf("%s\n", message);       \
-        system("pause");               \
-        raise(SIGABRT);                \
-    }
+        if(!(expression))              \
+        {                              \
+            printf("%s\n", message);   \
+            system("pause");           \
+        }                              \
+    } while(0);                        
 #elif defined(PS_DEBUG)
 #define  PS_ASSERT(expression, message)
 #endif

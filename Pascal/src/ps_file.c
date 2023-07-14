@@ -38,3 +38,9 @@ char* read_file(const char* path)
     fclose(file_handle);
     return data;
 }
+
+char* get_extension(char* file_path)
+{
+    char* extension = strrchr(file_path, '.');
+    return extension;
+}
