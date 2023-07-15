@@ -162,7 +162,7 @@ void ps_respond(ps_response* response)
     if(response->body)
         buffer_push_data(&buffer, response->body, response->content_length);
 
-    printf("%s\n", buffer.data);
+    PS_TRACE("%s", buffer.data);
 
     write_to_socket(response->client_socket, &buffer);
 

@@ -7,6 +7,8 @@
 #include "ps_socket_utils.h"
 #include "ps_response.h"
 #include "ps_queue.h"
+#include "ps_string.h"
+#include "ps_file.h"
 
 #include <winsock2.h>
 #include <stdlib.h>
@@ -20,7 +22,7 @@
 
 static void _default_favicon_response(ps_request* request)
 {
-    ps_response* favicon_response = response_init(request->client_socket);
+    ps_response* favicon_response = response_init(request->socket);
     ps_respond(favicon_response);
 }
 
@@ -50,8 +52,10 @@ ps_server* init_server(ps_protocol protocol)
     ps_server* server = malloc(sizeof(ps_server));
     server->server_socket = server_socket;
 //    server->request_callback = request_callback;
-    sc_map_init_sv(&(server->route_map), INITIAL_ROUTE_MAP_CAPACITY, 0);
+    sc_map_init_32v(&(server->route_map), INITIAL_ROUTE_MAP_CAPACITY, 0);
     server_add_route(server, "/favicon.ico", _default_favicon_response);
+
+    sc_map_init_32v(&(server->static_files), INITIAL_ROUTE_MAP_CAPACITY, 0);
 
     return server;
 }
@@ -59,15 +63,22 @@ ps_server* init_server(ps_protocol protocol)
 static void _print_request_info(ps_request* request)
 {
     const char* method = request_method_to_str(request->method);
-    printf("%s\n", method);
-    printf("%s\n", request->target);
-    printf("%s\n", request->buffer.data);
+    PS_TRACE("%s", method);
+    PS_TRACE("%s", request->target);
+    PS_TRACE("%s", request->buffer.data);
 
+}
+
+static ps_request_callback _server_get_route_callback(ps_server* server, const char* route)
+{
+    uint32_t route_target_hash = sc_murmurhash(route);
+    ps_request_callback callback = sc_map_get_32v(&(server->route_map), route_target_hash);
 }
 
 void server_add_route(ps_server* server, const char* route, ps_request_callback callback)
 {
-    sc_map_put_sv(&(server->route_map), route, callback);
+    uint32_t route_target_hash = sc_murmurhash(route);
+    sc_map_put_32v(&(server->route_map), route_target_hash, callback);
 }
 
 void start_request_response_loop(ps_server* server)
@@ -82,12 +93,12 @@ void start_request_response_loop(ps_server* server)
         buffer_init(&(request->buffer), PS_HTTP_REQUEST_INITIAL_BUF_SIZE);
 
         // receive the data from the client socket and parse baybeeeeeeeeee
-        receive_from_socket(request->client_socket, &(request->buffer));
+        receive_from_socket(request->socket, &(request->buffer));
         parse_raw_request_data(request);
 
 //        server->request_callback(request);
 
-        ps_request_callback callback = sc_map_get_sv(&(server->route_map), request->target);
+        ps_request_callback callback = _server_get_route_callback(server, request->target);
         if(sc_map_found(&server->route_map))
         {
             _print_request_info(request);
@@ -136,7 +147,7 @@ ps_request* init_request(ps_server* server, ps_socket client_socket)
 {
     ps_request* request = (ps_request*)malloc(sizeof(ps_request));
     request->server = server;
-    request->client_socket = client_socket;
+    request->socket = client_socket;
 
     return request;
 }
@@ -145,7 +156,7 @@ void shutdown_request(ps_request* request)
 {
     PS_ASSERT(request, "Can't free a request that is null");
 
-    close_socket(request->client_socket);
+    close_socket(request->socket);
 
     buffer_free(&(request->buffer));
     free(request);
@@ -160,12 +171,20 @@ int close_socket(ps_socket socket)
 
 int shutdown_server(ps_server* server)
 {
-    if(server != NULL)
+    if(!server)
         return -1;
 
     int close_result = close_socket(server->server_socket);
 
-    sc_map_term_sv(&(server->route_map));
+    sc_map_term_32v(&(server->route_map));
+
+    char* file_data;
+    sc_map_foreach_value(&(server->static_files), file_data)
+    {
+        free(file_data);
+    }
+
+    sc_map_term_32v(&(server->static_files));
 
     free(server);
     return close_result;
@@ -174,25 +193,50 @@ int shutdown_server(ps_server* server)
 static void _print_queue(ps_queue* queue)
 {
     for (int i = 0; i < queue->size; ++i) {
-        printf("%s\n", queue->data[i]);
+        PS_TRACE("%s", queue->data[i]);
     }
 }
 
-void server_add_static_files(ps_server* server, char* folder_path, ...)
+static void _handle_static_file(ps_request* request)
+{
+    // the request target without the / (didnt have a goddamn clue how to name it)
+    char* request_target = "";
+
+    if(strlen(request->target) > 1)
+        request_target = request->target + 1;
+
+    uint32_t request_target_hash = sc_murmurhash(request_target);
+    char* static_file_data = sc_map_get_32v(&(request->server->static_files), request_target_hash);
+    if(!sc_map_found(&(request->server->static_files)))
+        return;
+
+    ps_response* response = response_init(request->socket);
+    response_set_content_type(response, "text/css");
+    response_set_body(response, static_file_data, strlen(static_file_data));
+
+    ps_respond(response);
+}
+
+
+// i had to implement a fucking queue just for this;
+// so many things went wrong; but now i can add static files baybeeeeeeeeeeeeeeeeeeeee
+void _server_add_static_files(ps_server* server, char* folder_path, ...)
 {
     ps_queue queue;
     queue_init(&queue, 16);
 
     queue_enqueue(&queue, folder_path);
+    char route_target[2048];
 
     while (!queue_is_empty(&queue))
     {
         char *current = queue_peek(&queue);
-        queue_dequeue(&queue);
 
         WIN32_FIND_DATA find_data;
         char path[2048];
-        sprintf(path, "%s\\*.*", current);
+        sprintf(path, "%s/*.*", current);
+
+        const char folder_delimiter = '/';
 
         HANDLE file_handle = FindFirstFile(path, &find_data);
         PS_ASSERT(file_handle != INVALID_HANDLE_VALUE, "Couldn't open the folder");
@@ -202,32 +246,53 @@ void server_add_static_files(ps_server* server, char* folder_path, ...)
                 strcmp(find_data.cFileName, "..") == 0)
                 continue;
 
-            sprintf(path, "%s\\%s", current, find_data.cFileName);
+            sprintf(path, "%s/%s", current, find_data.cFileName);
             if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-                printf("Directory: %s\n", path);
+                PS_TRACE("Directory: %s", path);
                 queue_enqueue(&queue, path);
             } else
-                printf("File: %s\n", find_data.cFileName);
+            {
+                PS_TRACE("File: %s", find_data.cFileName);
+                va_list extensions;
 
-            _print_queue(&queue);
+                va_start(extensions, folder_path);
+
+                char* extension;
+                while((extension = va_arg(extensions, char*)) != NULL)
+                {
+                    char* file_extension = get_extension(find_data.cFileName);
+                    if(!file_extension)
+                        continue;
+
+                    if(ps_strings_equal(file_extension, extension))
+                    {
+                        char* relative_path = strchr(path, folder_delimiter) + 1;
+
+                        PS_TRACE(relative_path);
+                        PS_TRACE(path);
+
+                        char* style_data = read_file(path);
+
+                        uint32_t relative_path_hash = sc_murmurhash(relative_path);
+                        sc_map_put_32v(&(server->static_files), relative_path_hash, style_data);
+                        sprintf(route_target, "/%s", relative_path);
+//                        PS_TRACE(route_target);
+                        server_add_route(server, route_target, _handle_static_file);
+
+//                        sc_map_put_str(&(server->static_files), )
+//                        PS_TRACE("%s and %s match; file: %s", file_extension, extension, find_data.cFileName);
+                    }
+                }
+
+                va_end(extensions);
+            }
+
+//            _print_queue(&queue);
         } while (FindNextFile(file_handle, &find_data));
 
         FindClose(file_handle);
+        queue_dequeue(&queue);
     }
-
-
-//    va_list extensions;
-
-//    while ((dir_entity = readdir(assets_dir)) != NULL)
-//    {
-//
-//
-////        va_start(extensions, folder_path);
-////        char* extension;
-////        while ((extension = va_arg(extensions, char*)) != NULL)
-//
-////        va_end(extensions);
-//    }
 
     queue_free(&queue);
 }

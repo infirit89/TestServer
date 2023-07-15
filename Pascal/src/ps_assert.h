@@ -16,7 +16,7 @@
             PS_ERROR(message);         \
             debug_break();             \
         }                              \
-    } while(0);
+    } while(0)
 #elif defined(PS_DEBUG)
 #define  PS_ASSERT(expression, message)
 #endif

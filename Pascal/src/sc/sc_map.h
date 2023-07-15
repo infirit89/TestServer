@@ -211,6 +211,8 @@
 		     _b && ((_i == -1 && (map)->used) || (map)->mem[_i].key != 0) ? 1 : (_b = 0); \
 		     _b = 0)
 
+uint32_t sc_murmurhash(const char *key);
+
 // integer keys: name  key type      value type
 sc_map_dec_scalar(int, int,          int)
 sc_map_dec_scalar(intv,int,          void*)
@@ -219,6 +221,7 @@ sc_map_dec_scalar(ll,  long long,    long long)
 sc_map_dec_scalar(llv, long long,    void *)
 sc_map_dec_scalar(lls, long long,    const char *)
 sc_map_dec_scalar(32,  uint32_t,     uint32_t)
+sc_map_dec_scalar(32v, uint32_t,     void *)
 sc_map_dec_scalar(64,  uint64_t,     uint64_t)
 sc_map_dec_scalar(64v, uint64_t,     void *)
 sc_map_dec_scalar(64s, uint64_t,     const char *)

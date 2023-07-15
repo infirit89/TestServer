@@ -349,7 +349,7 @@ static uint32_t sc_map_hash_64(uint64_t a)
 }
 
 // clang-format off
-uint32_t murmurhash(const char *key)
+uint32_t sc_murmurhash(const char *key)
 {
     const uint64_t m = UINT64_C(0xc6a4a7935bd1e995);
     const size_t len = strlen(key);
@@ -401,14 +401,15 @@ sc_map_def_scalar(ll,   long long,    long long,    sc_map_eq,   sc_map_hash_64)
 sc_map_def_scalar(llv,  long long,    void *,       sc_map_eq,   sc_map_hash_64)
 sc_map_def_scalar(lls,  long long,    const char *, sc_map_eq,   sc_map_hash_64)
 sc_map_def_scalar(32,   uint32_t,     uint32_t,     sc_map_eq,   sc_map_hash_32)
+sc_map_def_scalar(32v,  uint32_t,     void *,       sc_map_eq,   sc_map_hash_32)
 sc_map_def_scalar(64,   uint64_t,     uint64_t,     sc_map_eq,   sc_map_hash_64)
 sc_map_def_scalar(64v,  uint64_t,     void *,       sc_map_eq,   sc_map_hash_64)
 sc_map_def_scalar(64s,  uint64_t,     const char *, sc_map_eq,   sc_map_hash_64)
 
 // string keys:  name  key type      value type      cmp           hash
-sc_map_def_strkey(str, const char *, const char *, sc_map_streq, murmurhash)
-sc_map_def_strkey(sv,  const char *, void *,       sc_map_streq, murmurhash)
-sc_map_def_strkey(s64, const char *, uint64_t,     sc_map_streq, murmurhash)
-sc_map_def_strkey(sll, const char *, long long,    sc_map_streq, murmurhash)
+sc_map_def_strkey(str, const char *, const char *, sc_map_streq, sc_murmurhash)
+sc_map_def_strkey(sv,  const char *, void *,       sc_map_streq, sc_murmurhash)
+sc_map_def_strkey(s64, const char *, uint64_t,     sc_map_streq, sc_murmurhash)
+sc_map_def_strkey(sll, const char *, long long,    sc_map_streq, sc_murmurhash)
 
 // clang-format on

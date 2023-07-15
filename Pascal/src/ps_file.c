@@ -2,6 +2,7 @@
 // Created by OKAY on 6/21/2023.
 //
 #include "ps_file.h"
+#include "ps_log.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +12,7 @@ char* read_file(const char* path)
     FILE* file_handle = fopen(path, "r");
     if(!file_handle)
     {
-        printf("Couldn't open the file");
+        PS_ERROR("Couldn't open the file");
         return NULL;
     }
 
@@ -19,7 +20,7 @@ char* read_file(const char* path)
     long file_size = ftell(file_handle);
     if(file_size == -1)
     {
-        printf("Couldn't read from file");
+        PS_ERROR("Couldn't read from file");
         return NULL;
     }
 

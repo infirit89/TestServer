@@ -30,8 +30,11 @@ void buffer_free(ps_buffer* buffer)
 void buffer_resize(ps_buffer* buffer, u32 capacity)
 {
     buffer->capacity = capacity;
-    buffer->data = (char*)realloc(buffer->data, buffer->capacity);
-    PS_ASSERT(buffer->data, "Couldn't reallocate the buffer's data");
+    char* temp = (char*)realloc(buffer->data, buffer->capacity);
+    PS_ASSERT(temp, "Couldn't reallocate the buffer's data");
+
+    if(temp)
+       buffer->data = temp;
 }
 
 void buffer_push_data(ps_buffer* buffer, char* data, u32 size)

@@ -16,7 +16,7 @@ static char http_css_response_body[BUFFER_LENGTH * 2];
 
 static void handle_home_request(ps_request* request)
 {
-    ps_response* response = response_init(request->client_socket);
+    ps_response* response = response_init(request->socket);
     response_set_content_type(response, "text/html");
     response_set_body(response, http_response_body, strlen(http_response_body));
 
@@ -25,56 +25,61 @@ static void handle_home_request(ps_request* request)
 
 static void handle_style_request(ps_request* request)
 {
-    ps_response* response2 = response_init(request->client_socket);
+    ps_response* response2 = response_init(request->socket);
     response_set_content_type(response2, "text/css");
     response_set_body(response2, http_css_response_body, strlen(http_css_response_body));
 
     ps_respond(response2);
 }
 
+//u32 __stdcall read_input(void* lpParameter)
+//{
+//    char input[30];
+//    while(1)
+//    {
+//        Sleep(100);
+//
+//        printf("Type your input\n");
+//        fgets(input, sizeof(input), stdin);
+//        input[strcspn(input, "\n")] = 0;
+//
+//        if(strcmp(input, "exit") == 0)
+//            break;
+//        else if(strcmp(input, "test") == 0)
+//            printf("i cum\n");
+//    }
+//    return 0;
+//}
+
 int main(int argc, char** argv)
 {
-    ps_log_init("Pascal");
+    int result = ps_init();
+    PS_ASSERT(!result, "Can't start pascal");
 
-//    PS_TRACE("i cum on %d", (int)69);
-//    PS_INFO("i cum on %d", (int)69);
-//    PS_ERROR("i cum on %d", (int)69);
-//    PS_WARNING("i cum on %d", (int)69);
+    char* response_data = read_file("Assets/index.html");
+    strcat(http_response_body, response_data);
 
-    ps_log_shutdown();
-    system("pause");
-    //    system("chcp 65001");
+    if(response_data)
+        free(response_data);
 
-//    server_add_static_files(NULL, "Assets");
+    response_data = read_file("Assets/style.css");
+    strcat(http_css_response_body, response_data);
+    if(response_data)
+        free(response_data);
 
+    printf("%s\n", http_css_response_body);
 
-//    char* response_data = read_file("Assets/index.html");
-//    strcat(http_response_body, response_data);
-//
-//    if(response_data)
-//        free(response_data);
-//
-//    response_data = read_file("Assets/style.css");
-//    strcat(http_css_response_body, response_data);
-//    if(response_data)
-//        free(response_data);
-//
-//    printf("%s\n", http_css_response_body);
-//
-//    int result = ps_init();
-//    PS_ASSERT(!result, "Can't start pascal");
-//
-//    ps_server* server = init_server(PS_TCP);
-//
-//    server_add_route(server, "/", handle_home_request);
+    ps_server* server = init_server(PS_TCP);
+    server_add_static_files(server, "Assets", ".css");
+
+    server_add_route(server, "/", handle_home_request);
 //    server_add_route(server, "/style.css", handle_style_request);
-//
-//    server_listen(server, port, PS_DEFAULT_BACKLOG);
-//
-//    shutdown_server(server);
-//
-//    result = ps_shutdown();
-//    PS_ASSERT(!result, "Can't shutdown pascal");
+
+    server_listen(server, port, PS_DEFAULT_BACKLOG);
+
+    shutdown_server(server);
+
+    ps_shutdown();
 
     return 0;
 }

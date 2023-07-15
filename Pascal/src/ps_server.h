@@ -23,7 +23,9 @@ typedef struct ps_server
     ps_socket server_socket;
 //    ps_request_callback request_callback;
     int server_port;
-    struct sc_map_sv route_map;
+    struct sc_map_32v route_map;
+    struct sc_map_32v static_files;
+
 } ps_server;
 
 #define PS_DEFAULT_BACKLOG 10
@@ -40,7 +42,10 @@ void shutdown_request(ps_request* request);
 
 ps_socket accept_client(ps_server* server);
 
-void server_add_static_files(ps_server* server, char* folder_path, ...);
+void _server_add_static_files(ps_server* server, char* folder_path, ...);
+
+#define server_add_static_files(server, folder_path, ...) \
+    _server_add_static_files(server, folder_path, __VA_ARGS__, NULL)
 
 void start_request_response_loop(ps_server* server);
 

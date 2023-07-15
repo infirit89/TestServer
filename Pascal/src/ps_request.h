@@ -21,7 +21,7 @@ const char* request_method_to_str(ps_request_method method);
 struct ps_server;
 typedef struct ps_request
 {
-    ps_socket client_socket;
+    ps_socket socket;
     ps_request_method method;
     char* target;
     struct ps_server* server;
