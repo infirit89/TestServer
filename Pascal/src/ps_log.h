@@ -21,9 +21,9 @@ bool ps_log_init(const char* logger_name);
 void ps_log_shutdown();
 void ps_log(ps_log_level log_level, const char* fmt, ...);
 
-#define PS_TRACE(fmt, ...) ps_log(PS_LOG_TRACE, fmt, __VA_ARGS__)
-#define PS_INFO(fmt, ...) ps_log(PS_LOG_INFO, fmt, __VA_ARGS__)
-#define PS_WARNING(fmt, ...) ps_log(PS_LOG_WARNING, fmt, __VA_ARGS__)
-#define PS_ERROR(fmt, ...) ps_log(PS_LOG_ERROR, fmt, __VA_ARGS__)
+#define PS_TRACE(...) ps_log(PS_LOG_TRACE, __VA_ARGS__)
+#define PS_INFO(...) ps_log(PS_LOG_INFO, __VA_ARGS__)
+#define PS_WARNING(...) ps_log(PS_LOG_WARNING, __VA_ARGS__)
+#define PS_ERROR(...) ps_log(PS_LOG_ERROR, __VA_ARGS__)
 
 #endif //PASCAL_PS_LOG_H

@@ -82,10 +82,14 @@ void ps_log(ps_log_level log_level, const char* fmt, ...)
             break;
     }
 
+
+
     fprintf(s_logger.output, "[%02d:%02d:%02d] ", time.wHour, time.wMinute, time.wSecond);
     fprintf(s_logger.output, "%s: ", s_logger.name);
-    fprintf(s_logger.output, fmt, args);
+    vfprintf(s_logger.output, fmt, args);
     fprintf(s_logger.output, "\n");
+    fflush(s_logger.output);
+
     va_end(args);
 
     SetConsoleTextAttribute(s_logger.console_handle, WIN_CONSOLE_COLOR_WHITE);

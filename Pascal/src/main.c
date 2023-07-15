@@ -3,6 +3,8 @@
 #include "pascal.h"
 #include "ps_response.h"
 #include "ps_file.h"
+#include "ps_log.h"
+#include "ps_tests.h"
 
 #include <stdio.h>
 
@@ -30,15 +32,17 @@ static void handle_style_request(ps_request* request)
     ps_respond(response2);
 }
 
-#include <windows.h>
-#include "ps_debugbreak.h"
-#include "ps_log.h"
-
 int main(int argc, char** argv)
 {
     ps_log_init("Pascal");
 
+//    PS_TRACE("i cum on %d", (int)69);
+//    PS_INFO("i cum on %d", (int)69);
+//    PS_ERROR("i cum on %d", (int)69);
+//    PS_WARNING("i cum on %d", (int)69);
+
     ps_log_shutdown();
+    system("pause");
     //    system("chcp 65001");
 
 //    server_add_static_files(NULL, "Assets");

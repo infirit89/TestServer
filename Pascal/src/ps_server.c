@@ -14,6 +14,7 @@
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <windows.h>
+#include <stdio.h>
 
 #define INITIAL_ROUTE_MAP_CAPACITY 5
 

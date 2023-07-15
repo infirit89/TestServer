@@ -4,9 +4,8 @@
 
 #ifndef PASCAL_PS_ASSERT_H
 #define PASCAL_PS_ASSERT_H
-#include <stdio.h>
-#include <stdlib.h>
-#include <signal.h>
+#include "ps_log.h"
+#include "ps_debugbreak.h"
 
 #if defined(PS_DEBUG)
 #define PS_ASSERT(expression, message) \
@@ -14,10 +13,10 @@
     {                                  \
         if(!(expression))              \
         {                              \
-            printf("%s\n", message);   \
-            system("pause");           \
+            PS_ERROR(message);         \
+            debug_break();             \
         }                              \
-    } while(0);                        
+    } while(0);
 #elif defined(PS_DEBUG)
 #define  PS_ASSERT(expression, message)
 #endif

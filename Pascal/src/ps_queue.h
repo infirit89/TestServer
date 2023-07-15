@@ -19,7 +19,7 @@ void queue_init(ps_queue* queue, u32 capacity);
 void queue_free(ps_queue* queue);
 
 void queue_enqueue(ps_queue* queue, char* element);
-void queue_dequeue(ps_queue* queue);
+bool queue_dequeue(ps_queue* queue);
 char* queue_peek(ps_queue* queue);
 bool queue_is_empty(ps_queue* queue);
 

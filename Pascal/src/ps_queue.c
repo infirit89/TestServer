@@ -31,6 +31,8 @@ static void _copy_queue_elements(ps_queue* queue, char** new_data)
     for (int i = 0; i < queue->size; ++i) {
         new_data[destination_index] = malloc(sizeof(queue->data[source_index]));
         strcpy(new_data[destination_index], queue->data[source_index]);
+        char* temp = queue->data[source_index];
+        free(temp);
         source_index = (source_index + 1) % queue->capacity;
         destination_index++;
     }
@@ -52,20 +54,24 @@ void queue_enqueue(ps_queue* queue, char* element)
     if(queue->size >= queue->capacity)
         _expand_queue(queue);
 
-    queue->data[queue->tail] = malloc(strlen(element));
+    queue->data[queue->tail] = malloc(strlen(element) + 1);
     strcpy(queue->data[queue->tail], element);
+//    queue->data[queue->tail][strlen(element)] = '\0';
+//    char* temp = queue->data[queue->tail];
     queue->tail = (queue->tail + 1) % queue->capacity;
     queue->size++;
 }
 
-void queue_dequeue(ps_queue* queue)
+bool queue_dequeue(ps_queue* queue)
 {
-    printf("%s\n", queue->data[queue->head]);
+    if(!queue->data[queue->head])
+        return PS_FALSE;
 
     free(queue->data[queue->head]);
     queue->data[queue->head] = NULL;
     queue->head = (queue->head + 1) % queue->capacity;
     queue->size--;
+    return PS_TRUE;
 }
 
 char* queue_peek(ps_queue* queue)

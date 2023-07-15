@@ -7,6 +7,7 @@
 
 #include "ps_queue.h"
 
-void queue_test();
+void ps_queue_test_1();
+void ps_queue_test_2();
 
 #endif //PASCAL_PS_TESTS_H

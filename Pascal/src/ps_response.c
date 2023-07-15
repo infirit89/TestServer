@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 const char* response_text[] =
 {
