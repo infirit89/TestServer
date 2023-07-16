@@ -24,8 +24,20 @@ const char* request_method_to_str(ps_request_method method)
     return "";
 }
 
+void _init_empty_request(ps_request* request)
+{
+    request->method = PS_NONE;
+    request->target = "";
+}
+
 void parse_raw_request_data(ps_request* request)
 {
+    if(request->buffer.size <= 0)
+    {
+        _init_empty_request(request);
+        return;
+    }
+
     const char* delimeter = " ";
 
     char* temp_buffer = (char*)malloc(request->buffer.size);

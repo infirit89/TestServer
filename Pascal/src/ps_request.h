@@ -10,7 +10,8 @@
 
 typedef enum ps_request_method
 {
-    PS_GET = 0,
+    PS_NONE = 0,
+    PS_GET,
     PS_POST,
     PS_UPDATE,
     PS_DELETE

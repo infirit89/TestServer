@@ -7,6 +7,8 @@
 #include "stdio.h"
 #include "ps_defs.h"
 
+#include <synchapi.h>
+
 struct ps_logger
 {
     const char* name;
@@ -20,6 +22,27 @@ struct ps_logger
 
 static bool s_initialized;
 static struct ps_logger s_logger;
+static CRITICAL_SECTION s_mutex;
+
+static void _init_mutex()
+{
+    InitializeCriticalSection(&s_mutex);
+}
+
+static void _shutdown_mutex()
+{
+    DeleteCriticalSection(&s_mutex);
+}
+
+static void _lock()
+{
+    EnterCriticalSection(&s_mutex);
+}
+
+static void _unlock()
+{
+    LeaveCriticalSection(&s_mutex);
+}
 
 #define WIN_CONSOLE_COLOR_GREEN 10
 #define WIN_CONSOLE_COLOR_RED 12
@@ -31,6 +54,7 @@ bool ps_log_init(const char* logger_name)
     if(s_initialized)
         return PS_FALSE;
 
+    _init_mutex();
     s_initialized = PS_TRUE;
     s_logger = (struct ps_logger){0 };
     s_logger.name = logger_name;
@@ -53,6 +77,7 @@ void ps_log_shutdown()
 
     s_initialized = PS_FALSE;
     s_logger = (struct ps_logger){0 };
+    _shutdown_mutex();
 }
 
 void ps_log(ps_log_level log_level, const char* fmt, ...)
@@ -66,6 +91,7 @@ void ps_log(ps_log_level log_level, const char* fmt, ...)
 
     va_start(args, fmt);
 
+    _lock();
     switch(log_level)
     {
         case PS_LOG_TRACE:
@@ -93,5 +119,6 @@ void ps_log(ps_log_level log_level, const char* fmt, ...)
     va_end(args);
 
     SetConsoleTextAttribute(s_logger.console_handle, WIN_CONSOLE_COLOR_WHITE);
+    _unlock();
 }
 

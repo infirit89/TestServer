@@ -9,6 +9,7 @@
 #include "ps_queue.h"
 #include "ps_string.h"
 #include "ps_file.h"
+#include "utils/ps_content_type.h"
 
 #include <winsock2.h>
 #include <stdlib.h>
@@ -66,13 +67,18 @@ static void _print_request_info(ps_request* request)
     PS_TRACE("%s", method);
     PS_TRACE("%s", request->target);
     PS_TRACE("%s", request->buffer.data);
-
 }
 
-static ps_request_callback _server_get_route_callback(ps_server* server, const char* route)
+static void _despatch_request(ps_request* request)
 {
-    uint32_t route_target_hash = sc_murmurhash(route);
-    ps_request_callback callback = sc_map_get_32v(&(server->route_map), route_target_hash);
+    uint32_t route_target_hash = sc_murmurhash(request->target);
+    ps_request_callback callback = sc_map_get_32v(&(request->server->route_map), route_target_hash);
+
+    if(sc_map_found(&request->server->route_map))
+    {
+        _print_request_info(request);
+        callback(request);
+    }
 }
 
 void server_add_route(ps_server* server, const char* route, ps_request_callback callback)
@@ -96,14 +102,7 @@ void start_request_response_loop(ps_server* server)
         receive_from_socket(request->socket, &(request->buffer));
         parse_raw_request_data(request);
 
-//        server->request_callback(request);
-
-        ps_request_callback callback = _server_get_route_callback(server, request->target);
-        if(sc_map_found(&server->route_map))
-        {
-            _print_request_info(request);
-            callback(request);
-        }
+        _despatch_request(request);
 
         shutdown_request(request);
     }
@@ -190,7 +189,7 @@ int shutdown_server(ps_server* server)
     return close_result;
 }
 
-static void _print_queue(ps_queue* queue)
+static void _print_queue(ps_queue_str* queue)
 {
     for (int i = 0; i < queue->size; ++i) {
         PS_TRACE("%s", queue->data[i]);
@@ -211,26 +210,34 @@ static void _handle_static_file(ps_request* request)
         return;
 
     ps_response* response = response_init(request->socket);
-    response_set_content_type(response, "text/css");
+    char* file_extension = get_extension(request_target);
+
+    char* content_type;
+    if(try_get_content_type(file_extension, &content_type))
+        response_set_content_type(response, content_type);
+
     response_set_body(response, static_file_data, strlen(static_file_data));
 
     ps_respond(response);
 }
 
 
-// i had to implement a fucking queue just for this;
-// so many things went wrong; but now i can add static files baybeeeeeeeeeeeeeeeeeeeee
+ // i had to implement a fucking queue just for this;
+ // so many things went wrong; but now i can add static files baybeeeeeeeeeeeeeeeeeeeee
 void _server_add_static_files(ps_server* server, char* folder_path, ...)
 {
-    ps_queue queue;
+    ps_queue_str queue;
     queue_init(&queue, 16);
 
-    queue_enqueue(&queue, folder_path);
+    // heap allocated path
+    char* ha_path = ps_string_copy(folder_path);
+    queue_enqueue(&queue, ha_path);
     char route_target[2048];
 
     while (!queue_is_empty(&queue))
     {
         char *current = queue_peek(&queue);
+        queue_dequeue(&queue);
 
         WIN32_FIND_DATA find_data;
         char path[2048];
@@ -247,12 +254,14 @@ void _server_add_static_files(ps_server* server, char* folder_path, ...)
                 continue;
 
             sprintf(path, "%s/%s", current, find_data.cFileName);
-            if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-                PS_TRACE("Directory: %s", path);
-                queue_enqueue(&queue, path);
-            } else
+            if (find_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
             {
-                PS_TRACE("File: %s", find_data.cFileName);
+                ha_path = ps_string_copy(path);
+                queue_enqueue(&queue, ha_path);
+            }
+            else
+            {
+                PS_TRACE(find_data.cFileName);
                 va_list extensions;
 
                 va_start(extensions, folder_path);
@@ -276,22 +285,18 @@ void _server_add_static_files(ps_server* server, char* folder_path, ...)
                         uint32_t relative_path_hash = sc_murmurhash(relative_path);
                         sc_map_put_32v(&(server->static_files), relative_path_hash, style_data);
                         sprintf(route_target, "/%s", relative_path);
-//                        PS_TRACE(route_target);
                         server_add_route(server, route_target, _handle_static_file);
-
-//                        sc_map_put_str(&(server->static_files), )
-//                        PS_TRACE("%s and %s match; file: %s", file_extension, extension, find_data.cFileName);
                     }
                 }
 
                 va_end(extensions);
             }
 
-//            _print_queue(&queue);
         } while (FindNextFile(file_handle, &find_data));
 
         FindClose(file_handle);
-        queue_dequeue(&queue);
+
+        free(current);
     }
 
     queue_free(&queue);
