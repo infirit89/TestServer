@@ -4,7 +4,8 @@
 
 
 #define PS_QUEUE_TESTS 0
-#define PS_SERVER_TESTS 1
+#define PS_SERVER_TESTS 0
+#define PS_EVENT_MANAGER_TESTS 1
 
 #if PS_QUEUE_TESTS
 
@@ -25,6 +26,18 @@ int main()
 
     return 0;
 }
+#elif PS_EVENT_MANAGER_TESTS
+#include "event_manager/ps_event_manager_tests.h"
+#include <stdlib.h>
+
+int main()
+{
+    ps_event_manager_test_1();
+
+    system("pause");
+    return 0;
+}
+
 #elif PS_SERVER_TESTS
 
 #include "server/ps_queue_server_tests.h"

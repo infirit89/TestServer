@@ -10,7 +10,7 @@
 #define SUCASS "[OK]"
 #define DONTSUCASS "[FAIL]"
 
-void _check_value_bool(bool value)
+void _check_value_bool(b8 value)
 {
     if(value)
     {
@@ -32,7 +32,7 @@ void _check_value_str(char* value_to_check, const char* value)
     PS_ERROR("%s %s", DONTSUCASS, value_to_check);
 }
 
-bool strmatches(char* val1, char* val2)
+b8 strmatches(char* val1, char* val2)
 {
     return strcmp(val1, val2) == 0;
 }
@@ -68,7 +68,7 @@ void ps_queue_test_1()
         queue_enqueue(&queue, values[i]);
     }
 
-    bool success = PS_FALSE;
+    b8 success = PS_FALSE;
     int index = 0;
 
     while(!queue_is_empty(&queue))

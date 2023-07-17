@@ -17,7 +17,7 @@ typedef enum ps_log_level
     PS_LOG_ERROR
 } ps_log_level;
 
-bool ps_log_init(const char* logger_name);
+b8 ps_log_init(const char* logger_name);
 void ps_log_shutdown();
 void ps_log(ps_log_level log_level, const char* fmt, ...);
 

@@ -14,7 +14,7 @@ char* ps_string_copy(char* str)
     return copied_str;
 }
 
-bool ps_strings_equal(char* str1, char* str2)
+b8 ps_strings_equal(char* str1, char* str2)
 {
     return strcmp(str1, str2) == 0;
 }

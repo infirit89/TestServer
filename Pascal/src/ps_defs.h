@@ -13,7 +13,7 @@ typedef signed char s8;
 typedef short s16;
 typedef int s32;
 typedef long long s64;
-typedef unsigned char bool;
+typedef unsigned char b8;
 
 #define INT8_MIN (-128)
 #define INT16_MIN (-32768)
