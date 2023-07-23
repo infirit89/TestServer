@@ -2,7 +2,7 @@
 // Created by OKAY on 6/21/2023.
 //
 #include "ps_file.h"
-#include "ps_log.h"
+#include "core/ps_log.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

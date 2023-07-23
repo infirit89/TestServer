@@ -4,7 +4,7 @@
 
 #ifndef PASCAL_PS_QUEUE_H
 #define PASCAL_PS_QUEUE_H
-#include "ps_defs.h"
+#include "../core/ps_defs.h"
 #include <memory.h>
 #include <stdlib.h>
 

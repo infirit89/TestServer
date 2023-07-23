@@ -5,7 +5,7 @@
 #include "ps_log.h"
 #include "stdio.h"
 #include "ps_defs.h"
-#include "ps_mutex.h"
+#include "thread/ps_mutex.h"
 
 #include <windows.h>
 
@@ -20,7 +20,7 @@ struct ps_logger
     void* output;
 };
 
-static b8 s_initialized;
+static u8 s_initialized;
 static struct ps_logger s_logger;
 static ps_mutex mutex;
 
@@ -29,12 +29,12 @@ static ps_mutex mutex;
 #define WIN_CONSOLE_COLOR_YELLOW 14
 #define WIN_CONSOLE_COLOR_WHITE 15
 
-b8 ps_log_init(const char* logger_name)
+u8 ps_log_init(const char* logger_name)
 {
     if(s_initialized)
         return PS_FALSE;
 
-    mutex_init(&mutex);
+    ps_mutex_init(&mutex);
     s_initialized = PS_TRUE;
     s_logger = (struct ps_logger){0 };
     s_logger.name = logger_name;
@@ -57,7 +57,7 @@ void ps_log_shutdown()
 
     s_initialized = PS_FALSE;
     s_logger = (struct ps_logger){0 };
-    mutex_shutdown(&mutex);
+    ps_mutex_destroy(&mutex);
 }
 
 void ps_log(ps_log_level log_level, const char* fmt, ...)
@@ -71,7 +71,7 @@ void ps_log(ps_log_level log_level, const char* fmt, ...)
 
     va_start(args, fmt);
 
-    mutex_lock(&mutex);
+    ps_mutex_lock(&mutex);
     switch(log_level)
     {
         case PS_LOG_TRACE:
@@ -99,6 +99,6 @@ void ps_log(ps_log_level log_level, const char* fmt, ...)
     va_end(args);
 
     SetConsoleTextAttribute(s_logger.console_handle, WIN_CONSOLE_COLOR_WHITE);
-    mutex_unlock(&mutex);
+    ps_mutex_unlock(&mutex);
 }
 

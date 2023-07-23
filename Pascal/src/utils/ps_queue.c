@@ -3,8 +3,8 @@
 //
 
 #include "ps_queue.h"
-#include "ps_string.h"
-#include "ps_assert.h"
+#include "../core/ps_string.h"
+#include "../core/ps_assert.h"
 
 #include <stdlib.h>
 #include <string.h>

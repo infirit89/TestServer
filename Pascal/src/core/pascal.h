@@ -5,7 +5,7 @@
 #ifndef PASCAL_PASCAL_H
 #define PASCAL_PASCAL_H
 
-#include "ps_server.h"
+#include "server/ps_server.h"
 
 int ps_init();
 int ps_shutdown();

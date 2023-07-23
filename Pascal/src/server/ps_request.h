@@ -5,8 +5,8 @@
 #ifndef PASCAL_PS_REQUEST_H
 #define PASCAL_PS_REQUEST_H
 
-#include "ps_defs.h"
-#include "ps_buffer.h"
+#include "core/ps_defs.h"
+#include "utils/ps_buffer.h"
 
 typedef enum ps_request_method
 {
@@ -30,5 +30,8 @@ typedef struct ps_request
 } ps_request;
 
 void parse_raw_request_data(ps_request* request);
+
+ps_request* init_request(struct ps_server* server, ps_socket client_socket);
+void shutdown_request(ps_request* request);
 
 #endif //PASCAL_PS_REQUEST_H

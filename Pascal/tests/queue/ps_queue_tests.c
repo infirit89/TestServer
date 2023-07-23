@@ -3,14 +3,14 @@
 //
 
 #include "ps_queue_tests.h"
-#include "../../src/ps_log.h"
+#include "../../src/core/ps_log.h"
 
 #include <string.h>
 
 #define SUCASS "[OK]"
 #define DONTSUCASS "[FAIL]"
 
-void _check_value_bool(b8 value)
+void _check_value_bool(u8 value)
 {
     if(value)
     {
@@ -32,7 +32,7 @@ void _check_value_str(char* value_to_check, const char* value)
     PS_ERROR("%s %s", DONTSUCASS, value_to_check);
 }
 
-b8 strmatches(char* val1, char* val2)
+u8 strmatches(char* val1, char* val2)
 {
     return strcmp(val1, val2) == 0;
 }
@@ -68,7 +68,7 @@ void ps_queue_test_1()
         queue_enqueue(&queue, values[i]);
     }
 
-    b8 success = PS_FALSE;
+    u8 success = PS_FALSE;
     int index = 0;
 
     while(!queue_is_empty(&queue))

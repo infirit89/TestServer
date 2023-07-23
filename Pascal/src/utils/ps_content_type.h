@@ -5,7 +5,7 @@
 #ifndef PASCAL_PS_CONTENT_TYPE_H
 #define PASCAL_PS_CONTENT_TYPE_H
 
-#include "../sc/sc_map.h"
+#include "sc/sc_map.h"
 
 // NOTE: this should only be used by the ps_server
 // i didnt put it there because it was getting a bit cluttered

@@ -3,9 +3,9 @@
 //
 
 #include "ps_response.h"
-#include "ps_assert.h"
-#include "ps_buffer.h"
-#include "ps_socket_utils.h"
+#include "core/ps_assert.h"
+#include "utils/ps_buffer.h"
+#include "utils/ps_socket_utils.h"
 
 #include <stdlib.h>
 #include <stdarg.h>

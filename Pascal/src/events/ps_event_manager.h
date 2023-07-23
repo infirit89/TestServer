@@ -6,7 +6,7 @@
 #define PASCAL_PS_EVENT_MANAGER_H
 
 #include "sc/sc_map.h"
-#include "ps_queue.h"
+#include "utils/ps_queue.h"
 
 typedef enum ps_event_type
 {

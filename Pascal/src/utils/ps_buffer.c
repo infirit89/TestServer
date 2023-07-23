@@ -3,7 +3,7 @@
 //
 
 #include "ps_buffer.h"
-#include "ps_assert.h"
+#include "../core/ps_assert.h"
 
 #include <stdlib.h>
 #include <memory.h>

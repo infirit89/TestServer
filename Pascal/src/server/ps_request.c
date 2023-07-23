@@ -3,8 +3,10 @@
 //
 
 #include "ps_request.h"
-#include "string.h"
+#include "utils/ps_socket_utils.h"
+#include "core/ps_assert.h"
 
+#include <string.h>
 #include <stdlib.h>
 
 #define METHOD_GET "GET"
@@ -64,3 +66,23 @@ void parse_raw_request_data(ps_request* request)
     // NOTE: there's an error when freeing but im pretty sure this may cause a memory leek
     //free(data);
 }
+
+ps_request* init_request(struct ps_server* server, ps_socket client_socket)
+{
+    ps_request* request = (ps_request*)malloc(sizeof(ps_request));
+    request->server = server;
+    request->socket = client_socket;
+
+    return request;
+}
+
+void shutdown_request(ps_request* request)
+{
+    PS_ASSERT(request, "Can't free a request that is null");
+
+    close_socket(request->socket);
+
+    buffer_free(&(request->buffer));
+    free(request);
+}
+

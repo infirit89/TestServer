@@ -3,7 +3,7 @@
 //
 
 #include "ps_socket_utils.h"
-#include "ps_assert.h"
+#include "core/ps_assert.h"
 
 #include <winsock2.h>
 
@@ -34,4 +34,11 @@ void _receive_from_socket(ps_socket client_socket, ps_buffer* buffer, s32 flags)
             break;
 
     } while (bytes > 0 && buffer->capacity < PS_HTTP_MAX_REQUEST_BUF_SIZE);
+}
+
+int close_socket(ps_socket socket)
+{
+    int close_result = closesocket(socket);
+    PS_ASSERT(!close_result, "Couldn't close the client socket");
+    return close_result;
 }

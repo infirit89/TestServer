@@ -1,12 +1,15 @@
-#include "../../src/ps_assert.h"
+#include "core/ps_assert.h"
 #include "string.h"
-#include "../../src/pascal.h"
-#include "../../src/ps_response.h"
-#include "../../src/ps_file.h"
+#include "core/pascal.h"
+#include "server/ps_response.h"
+#include "server/ps_request.h"
+#include "utils/ps_file.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 static const u16 port = 8080;
+static const u8 thread_count = 10;
 #define BUFFER_LENGTH 1024
 
 static char http_response_body[BUFFER_LENGTH * 2];
@@ -40,7 +43,6 @@ static void handle_home_request(ps_request* request)
 //    return 0;
 //}
 
-
 void ps_server_test_1()
 {
     int result = ps_init();
@@ -59,7 +61,7 @@ void ps_server_test_1()
 
     printf("%s\n", http_css_response_body);
 
-    ps_server* server = init_server(PS_TCP);
+    ps_server* server = init_server(PS_TCP, thread_count);
     server_add_static_files(server, "Assets", ".css", ".js");
 
     server_add_route(server, "/", handle_home_request);

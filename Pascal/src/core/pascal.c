@@ -4,7 +4,7 @@
 #include "pascal.h"
 #include "ps_assert.h"
 #include "ps_log.h"
-#include "utils/ps_content_type.h"
+#include "../utils/ps_content_type.h"
 
 #include <winsock2.h>
 

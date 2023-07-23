@@ -5,11 +5,12 @@
 #ifndef PASCAL_PS_SOCKET_UTILS_H
 #define PASCAL_PS_SOCKET_UTILS_H
 
-#include "ps_defs.h"
-#include "ps_buffer.h"
+#include "core/ps_defs.h"
+#include "utils/ps_buffer.h"
 
 void _write_to_socket(ps_socket client_socket, ps_buffer* buffer, s32 flags);
 void _receive_from_socket(ps_socket client_socket, ps_buffer* buffer, s32 flags);
+int close_socket(ps_socket socket);
 
 #define write_to_socket_f(client_socket, buffer, flags) \
     _write_to_socket(client_socket, buffer, flags)

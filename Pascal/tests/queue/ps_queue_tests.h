@@ -5,7 +5,7 @@
 #ifndef PASCAL_PS_QUEUE_TESTS_H
 #define PASCAL_PS_QUEUE_TESTS_H
 
-#include "../../src/ps_queue.h"
+#include "../../src/utils/ps_queue.h"
 
 void ps_queue_test_1();
 void ps_queue_test_2();

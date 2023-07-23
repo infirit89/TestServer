@@ -5,7 +5,7 @@
 #ifndef PASCAL_PS_BUFFER_H
 #define PASCAL_PS_BUFFER_H
 
-#include "ps_defs.h"
+#include "../core/ps_defs.h"
 
 typedef struct ps_buffer
 {

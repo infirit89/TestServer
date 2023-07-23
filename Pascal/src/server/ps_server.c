@@ -3,23 +3,39 @@
 //
 
 #include "ps_server.h"
-#include "ps_assert.h"
-#include "ps_socket_utils.h"
+#include "core/ps_assert.h"
+#include "utils/ps_socket_utils.h"
 #include "ps_response.h"
-#include "ps_queue.h"
-#include "ps_string.h"
-#include "ps_file.h"
+#include "utils/ps_queue.h"
+#include "core/ps_string.h"
+#include "utils/ps_file.h"
 #include "utils/ps_content_type.h"
+#include "utils/ps_buffer.h"
+#include "ps_request.h"
+#include "sc/sc_map.h"
+
+#include "thread/ps_thread_pool.h"
 
 #include <winsock2.h>
 #include <stdlib.h>
 #include <dirent.h>
 #include <stdarg.h>
 #include <sys/stat.h>
-#include <windows.h>
+#include <fileapi.h>
 #include <stdio.h>
 
 #define INITIAL_ROUTE_MAP_CAPACITY 5
+
+struct ps_server
+{
+    ps_socket server_socket;
+//    ps_request_callback request_callback;
+    int server_port;
+    struct sc_map_32v route_map;
+    struct sc_map_32v static_files;
+    ps_thread_pool* thread_pool;
+};
+
 
 static void _default_favicon_response(ps_request* request)
 {
@@ -27,7 +43,7 @@ static void _default_favicon_response(ps_request* request)
     ps_respond(favicon_response);
 }
 
-ps_server* init_server(ps_protocol protocol)
+ps_server* init_server(ps_protocol protocol, u32 thread_count)
 {
     int socket_type = SOCK_STREAM;
     int socket_protocol = IPPROTO_TCP;
@@ -52,6 +68,7 @@ ps_server* init_server(ps_protocol protocol)
 
     ps_server* server = malloc(sizeof(ps_server));
     server->server_socket = server_socket;
+    server->thread_pool = ps_thread_pool_create(thread_count);
 //    server->request_callback = request_callback;
     sc_map_init_32v(&(server->route_map), INITIAL_ROUTE_MAP_CAPACITY, 0);
     server_add_route(server, "/favicon.ico", _default_favicon_response);
@@ -69,7 +86,8 @@ static void _print_request_info(ps_request* request)
     PS_TRACE("%s", request->buffer.data);
 }
 
-static void _despatch_request(ps_request* request)
+
+static void _dispatch_request(ps_request* request)
 {
     uint32_t route_target_hash = sc_murmurhash(request->target);
     ps_request_callback callback = sc_map_get_32v(&(request->server->route_map), route_target_hash);
@@ -79,6 +97,32 @@ static void _despatch_request(ps_request* request)
         _print_request_info(request);
         callback(request);
     }
+}
+
+typedef struct server_thread_data
+{
+    ps_server* server;
+    ps_socket client_socket;
+} server_thread_data;
+
+static void _handle_request(void* arg)
+{
+    server_thread_data* data = arg;
+    ps_server* server = data->server;
+    ps_socket client_socket = data->client_socket;
+
+    free(data);
+
+    ps_request* request = init_request(server, client_socket);
+    buffer_init(&(request->buffer), PS_HTTP_REQUEST_INITIAL_BUF_SIZE);
+
+    // receive the data from the client socket and parse baybeeeeeeeeee
+    receive_from_socket(request->socket, &(request->buffer));
+    parse_raw_request_data(request);
+
+    _dispatch_request(request);
+
+    shutdown_request(request);
 }
 
 void server_add_route(ps_server* server, const char* route, ps_request_callback callback)
@@ -95,16 +139,11 @@ void start_request_response_loop(ps_server* server)
         if(client == PS_INVALID_SOCKET)
             continue;
 
-        ps_request* request = init_request(server, client);
-        buffer_init(&(request->buffer), PS_HTTP_REQUEST_INITIAL_BUF_SIZE);
+        server_thread_data* data = malloc(sizeof(server_thread_data));
+        data->server = server;
+        data->client_socket = client;
 
-        // receive the data from the client socket and parse baybeeeeeeeeee
-        receive_from_socket(request->socket, &(request->buffer));
-        parse_raw_request_data(request);
-
-        _despatch_request(request);
-
-        shutdown_request(request);
+        ps_thread_pool_add_work(server->thread_pool, _handle_request, data);
     }
 }
 
@@ -142,32 +181,6 @@ ps_socket accept_client(ps_server* server)
     return client;
 }
 
-ps_request* init_request(ps_server* server, ps_socket client_socket)
-{
-    ps_request* request = (ps_request*)malloc(sizeof(ps_request));
-    request->server = server;
-    request->socket = client_socket;
-
-    return request;
-}
-
-void shutdown_request(ps_request* request)
-{
-    PS_ASSERT(request, "Can't free a request that is null");
-
-    close_socket(request->socket);
-
-    buffer_free(&(request->buffer));
-    free(request);
-}
-
-int close_socket(ps_socket socket)
-{
-    int close_result = closesocket(socket);
-    PS_ASSERT(!close_result, "Couldn't close the client socket");
-    return close_result;
-}
-
 int shutdown_server(ps_server* server)
 {
     if(!server)
@@ -184,6 +197,8 @@ int shutdown_server(ps_server* server)
     }
 
     sc_map_term_32v(&(server->static_files));
+
+    ps_thread_pool_destroy(server->thread_pool);
 
     free(server);
     return close_result;

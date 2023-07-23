@@ -4,8 +4,8 @@
 
 #include "ps_event_manager_tests.h"
 
-#include "../../src/ps_event_manager.h"
-#include "../../src/ps_log.h"
+#include "events/ps_event_manager.h"
+#include "../../src/core/ps_log.h"
 
 static void event_listener(ps_event event)
 {

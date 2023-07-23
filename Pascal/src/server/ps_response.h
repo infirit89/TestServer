@@ -5,7 +5,7 @@
 #ifndef PASCAL_PS_RESPONSE_H
 #define PASCAL_PS_RESPONSE_H
 
-#include "ps_defs.h"
+#include "core/ps_defs.h"
 
 typedef enum ps_http_response_status
 {
